@@ -7,6 +7,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from mozci.push import Push as MozciPush
 
 from treeherder.model.models import Job, JobType, Push, Repository
 from treeherder.push_health.builds import get_build_failures
@@ -228,6 +229,62 @@ class PushViewSet(viewsets.ViewSet):
     def health_usage(self, request, project):
         usage = get_usage()
         return Response({'usage': usage})
+
+    def convert(self, task):
+        print(task.__class__)
+        task_dict = task.to_json()
+        del task_dict['_groups']
+        task_dict['failedTests'] = {r.group for r in task.results if not r.ok}
+        del task_dict['_results']
+        task_dict['errors'] = task.errors
+        del task_dict['_errors']
+        return task_dict
+
+    @action(detail=False)
+    def health_ci(self, request, project):
+        revision = request.query_params.get('revision')
+        mozciPush = MozciPush([revision], project)
+        parentPush = mozciPush.parent
+
+        return Response(
+            {
+                'revision': revision,
+                'branch': mozciPush.branch,
+                'result': 'fail',
+                'metrics': {
+                    'commitHistory': {
+                        'name': 'Commit History',
+                        'result': 'none',
+                        'details': {
+                            'parent': {
+                                'revision': parentPush.revs[-1],
+                                'exactMatch': True,
+                                'date': parentPush.date,
+                                'branch': parentPush.branch,
+                            },
+                            'revisions': mozciPush.revs,
+                            'jobCounts': {
+                                "completed": 8766,
+                                "pending": 0,
+                                "running": 0,
+                                "success": 8643,
+                                "busted": 4,
+                                "retry": 36,
+                                "testfailed": 83,
+                            },
+                        },
+                    },
+                    'tests': {
+                        'name': 'Tests',
+                        'result': 'fail',
+                        'details': {
+                            'likelyRegressions': mozciPush.get_likely_regressions('label'),
+                            'possibleRegressions': mozciPush.get_possible_regressions('label'),
+                        },
+                    },
+                },
+            }
+        )
 
     @action(detail=False)
     def health(self, request, project):

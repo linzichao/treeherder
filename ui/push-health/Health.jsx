@@ -281,6 +281,13 @@ export default class Health extends React.PureComponent {
             notifications={notifications}
             clearNotification={this.clearNotification}
           />
+          <div>
+            <a
+              href={`/api/project/${repo}/push/health_ci/?revision=${revision}`}
+            >
+              Health CI
+            </a>
+          </div>
           {!!tests && !!currentRepo && (
             <div className="d-flex flex-column">
               <Row className="w-100">
