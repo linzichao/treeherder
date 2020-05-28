@@ -1,18 +1,16 @@
 import React from 'react';
 import { hot } from 'react-hot-loader/root';
-import { LazyLog } from 'react-lazylog';
 import isEqual from 'lodash/isEqual';
 
 import { getAllUrlParams, getUrlParam, setUrlParam } from '../helpers/location';
-import { scrollToLine } from '../helpers/utils';
 import { isReftest } from '../helpers/job';
 import { getJobsUrl, getReftestUrl, getArtifactsUrl } from '../helpers/url';
 import { getData } from '../helpers/http';
 import JobModel from '../models/job';
 import PushModel from '../models/push';
-import TextLogStepModel from '../models/textLogStep';
 import JobDetails from '../shared/JobDetails';
 import JobInfo from '../shared/JobInfo';
+import LogPanel from '../shared/LogPanel';
 import RepositoryModel from '../models/repository';
 import { formatArtifacts } from '../helpers/display';
 
@@ -26,18 +24,6 @@ const getUrlLineNumber = function getUrlLineNumber() {
     return lineNumberParam.split('-').map((line) => parseInt(line, 10));
   }
   return null;
-};
-
-const errorLinesCss = function errorLinesCss(errors) {
-  const style = document.createElement('style');
-  const rule = errors
-    .map(({ lineNumber }) => `a[id="${lineNumber}"]+span`)
-    .join(',')
-    .concat('{background:#fbe3e3;color:#a94442}');
-
-  style.type = 'text/css';
-  document.getElementsByTagName('head')[0].appendChild(style);
-  style.sheet.insertRule(rule);
 };
 
 class App extends React.PureComponent {
@@ -151,23 +137,6 @@ class App extends React.PureComponent {
           jobError: error.toString(),
         });
       });
-
-    TextLogStepModel.get(jobId).then((textLogSteps) => {
-      const stepErrors = textLogSteps.length ? textLogSteps[0].errors : [];
-      const errors = stepErrors.map((error) => ({
-        line: error.line,
-        lineNumber: error.line_number + 1,
-      }));
-      const firstErrorLineNumber = errors.length
-        ? [errors[0].lineNumber]
-        : null;
-      const urlLN = getUrlLineNumber();
-      const highlight = urlLN || firstErrorLineNumber;
-
-      errorLinesCss(errors);
-      this.setState({ errors });
-      this.setSelectedLine(highlight, true);
-    });
   }
 
   onHighlight = (range) => {
@@ -196,12 +165,6 @@ class App extends React.PureComponent {
     });
   };
 
-  scrollHighlightToTop = (highlight) => {
-    const lineAtTop = highlight && highlight[0] > 7 ? highlight[0] - 7 : 0;
-
-    scrollToLine(`a[id="${lineAtTop}"]`, 100);
-  };
-
   updateQuery = () => {
     const { highlight } = this.state;
 
@@ -224,7 +187,6 @@ class App extends React.PureComponent {
       jobExists,
       revision,
       errors,
-      highlight,
       jobUrl,
       currentRepo,
     } = this.state;
@@ -267,17 +229,10 @@ class App extends React.PureComponent {
               <ErrorLines errors={errors} onClickLine={this.setSelectedLine} />
             </div>
             <div className="log-contents flex-fill">
-              <LazyLog
-                url={rawLogUrl}
-                scrollToLine={highlight ? highlight[0] : 0}
-                highlight={highlight}
-                selectableLines
+              <LogPanel
+                job={job}
+                urlLineNumber={getUrlLineNumber()}
                 onHighlight={this.onHighlight}
-                onLoad={() => this.scrollHighlightToTop(highlight)}
-                highlightLineClassName="yellow-highlight"
-                rowHeight={13}
-                extraLines={3}
-                enableSearch
               />
             </div>
           </div>

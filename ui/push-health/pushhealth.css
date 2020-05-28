@@ -18,3 +18,48 @@
 .revision {
   font-size: 12px;
 }
+
+.strikethrough {
+  text-decoration: line-through;
+  color: darkgrey !important;
+}
+
+.bg-disabled {
+  background-color: lightgrey !important;
+  border-color: lightgrey !important;
+}
+
+.log-viewer-top-bar-buttons {
+  position: absolute;
+  top: 8px;
+  left: 5px;
+}
+
+.tab-content {
+  height: 250px;
+  border-bottom: 20px;
+}
+.react-tabs__tab-panel {
+  height: 100%;
+}
+
+.react-lazylog-searchbar {
+  background: lightgrey !important;
+}
+
+.react-lazylog-searchbar-input {
+  background: lightgrey !important;
+  border: 1px;
+  border-radius: 5px;
+  color: #53595f !important;
+}
+
+.log-line {
+  background: #eeeeee;
+  color: #53595f !important;
+}
+
+.tab-buttons {
+  position: absolute;
+  right: 20px;
+}

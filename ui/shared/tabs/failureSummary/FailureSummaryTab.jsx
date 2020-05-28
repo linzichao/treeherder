@@ -5,7 +5,11 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 import { thBugSuggestionLimit, thEvents } from '../../../helpers/constants';
 import { isReftest } from '../../../helpers/job';
-import { getBugUrl, getLogViewerUrl } from '../../../helpers/url';
+import {
+  getBugUrl,
+  getLogViewerUrl,
+  getReftestUrl,
+} from '../../../helpers/url';
 import BugFiler from '../../BugFiler';
 import BugSuggestionsModel from '../../../models/bugSuggestions';
 import TextLogStepModel from '../../../models/textLogStep';
@@ -120,8 +124,8 @@ class FailureSummaryTab extends React.Component {
       logParseStatus,
       logViewerFullUrl,
       selectedJob,
-      reftestUrl,
       addBug,
+      className,
     } = this.props;
     const {
       isBugFilerOpen,
@@ -136,8 +140,15 @@ class FailureSummaryTab extends React.Component {
     );
 
     return (
-      <div className="w-100 h-100" role="region" aria-label="Failure Summary">
-        <ul className="list-unstyled failure-summary-list" ref={this.fsMount}>
+      <div
+        className={`${className} w-100 h-100 overflow-auto`}
+        role="region"
+        aria-label="Failure Summary"
+      >
+        <ul
+          className="list-unstyled failure-summary-list overflow-auto"
+          ref={this.fsMount}
+        >
           {suggestions.map((suggestion, index) => (
             <SuggestionsListItem
               key={index} // eslint-disable-line react/no-array-index-key
@@ -226,7 +237,9 @@ class FailureSummaryTab extends React.Component {
             suggestions={suggestions}
             fullLog={jobLogUrls[0].url}
             parsedLog={logViewerFullUrl}
-            reftestUrl={isReftest(selectedJob) ? reftestUrl : ''}
+            reftestUrl={
+              isReftest(selectedJob) ? getReftestUrl(jobLogUrls[0].url) : ''
+            }
             successCallback={this.bugFilerCallback}
             jobGroupName={selectedJob.job_group_name}
           />
@@ -240,19 +253,19 @@ FailureSummaryTab.propTypes = {
   selectedJob: PropTypes.shape({}).isRequired,
   jobLogUrls: PropTypes.arrayOf(PropTypes.object),
   logParseStatus: PropTypes.string,
-  reftestUrl: PropTypes.string,
   logViewerFullUrl: PropTypes.string,
   addBug: PropTypes.func,
   pinJob: PropTypes.func,
+  className: PropTypes.string,
 };
 
 FailureSummaryTab.defaultProps = {
-  reftestUrl: null,
   jobLogUrls: [],
   logParseStatus: 'pending',
   logViewerFullUrl: null,
   addBug: null,
   pinJob: null,
+  className: 'bg-failure-summary-blue',
 };
 
 export default FailureSummaryTab;

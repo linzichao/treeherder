@@ -109,7 +109,6 @@ class TabsPanel extends React.Component {
       pinnedJobs,
       classificationMap,
       logViewerFullUrl,
-      reftestUrl,
       clearSelectedJob,
       selectedJobFull,
       pinJob,
@@ -188,7 +187,6 @@ class TabsPanel extends React.Component {
               selectedJob={selectedJobFull}
               jobLogUrls={jobLogUrls}
               logParseStatus={logParseStatus}
-              reftestUrl={reftestUrl}
               logViewerFullUrl={logViewerFullUrl}
               addBug={addBug}
               pinJob={pinJob}
@@ -240,7 +238,6 @@ TabsPanel.propTypes = {
   jobLogUrls: PropTypes.arrayOf(PropTypes.object),
   logParseStatus: PropTypes.string,
   logViewerFullUrl: PropTypes.string,
-  reftestUrl: PropTypes.string,
 };
 
 TabsPanel.defaultProps = {
@@ -249,7 +246,6 @@ TabsPanel.defaultProps = {
   perfJobDetail: [],
   jobRevision: null,
   logViewerFullUrl: null,
-  reftestUrl: null,
 };
 
 const mapStateToProps = ({

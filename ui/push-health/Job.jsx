@@ -2,16 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
-import { Badge, Col, Row } from 'reactstrap';
+import { Badge, Button, Col, Row } from 'reactstrap';
 
 import SimpleTooltip from '../shared/SimpleTooltip';
 import { getBtnClass } from '../helpers/job';
-import { getJobsUrl, getLogViewerUrl } from '../helpers/url';
-import logviewerIcon from '../img/logviewerIcon.svg';
 
 class Job extends PureComponent {
   render() {
-    const { job, repo, revision } = this.props;
+    const { job, onSelect } = this.props;
     const {
       id,
       result,
@@ -29,17 +27,16 @@ class Job extends PureComponent {
           autohide={false}
           text={
             <span>
-              <a
+              <Button
                 className={`p-1 rounded ${getBtnClass(
                   result,
                   failureClassificationId,
                 )} border`}
-                href={getJobsUrl({ selectedJob: job.id, repo, revision })}
-                target="_blank"
-                rel="noopener noreferrer"
+                // href={getJobsUrl({ selectedJob: job.id, repo, revision })}
+                onClick={onSelect}
               >
                 {jobSymbol}
-              </a>
+              </Button>
               {failureClassificationId !== 1 && (
                 <FontAwesomeIcon
                   icon={faStar}
@@ -58,25 +55,6 @@ class Job extends PureComponent {
             <Col className="align-items-start" key={id}>
               <Row className="mb-2">{jobName}</Row>
               <Row>Result: {resultStatus}</Row>
-              {job.result === 'testfailed' && (
-                <Row>
-                  Open Log Viewer:
-                  <a
-                    className="logviewer-btn ml-1"
-                    href={getLogViewerUrl(job.id, repo)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Open the Log Viewer for this job"
-                  >
-                    <img
-                      style={{ height: '18px' }}
-                      alt="Logviewer"
-                      src={logviewerIcon}
-                      className="logviewer-icon text-light mb-1"
-                    />
-                  </a>
-                </Row>
-              )}
             </Col>
           }
         />
@@ -93,8 +71,11 @@ Job.propTypes = {
     job_type_name: PropTypes.string.isRequired,
     job_type_symbol: PropTypes.string.isRequired,
   }).isRequired,
-  repo: PropTypes.string.isRequired,
-  revision: PropTypes.string.isRequired,
+  onSelect: PropTypes.func,
+};
+
+Job.defaultProps = {
+  onSelect: () => {},
 };
 
 export default Job;
