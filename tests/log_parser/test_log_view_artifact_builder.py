@@ -36,42 +36,10 @@ def do_test(log):
     assert act == exp
 
 
-@slow
-def test_mochitest_fail():
-    """Process a job with a single log reference."""
-
-    do_test("mozilla-esr17_xp_test_pgo-mochitest-browser-chrome-bm74-tests1-windows-build12")
-
-
 def test_mochitest_process_crash():
     """Test a mochitest log that has PROCESS-CRASH """
 
     do_test("mozilla-inbound_ubuntu64_vm-debug_test-mochitest-other-bm53-tests1-linux-build122")
-
-
-@slow
-def test_jetpack_fail():
-    """Process a job with a single log reference."""
-
-    do_test("ux_ubuntu32_vm_test-jetpack-bm67-tests1-linux-build16")
-
-
-@slow
-def test_crash_1():
-    """Test from old log parser"""
-    do_test("crash-1")
-
-
-@slow
-def test_crash_2():
-    """Test from old log parser"""
-    do_test("crash-2")
-
-
-@slow
-def test_crash_mac_1():
-    """Test from old log parser"""
-    do_test("crash-mac-1")
 
 
 @slow
