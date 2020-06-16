@@ -2,9 +2,14 @@ import React from 'react';
 import fetchMock from 'fetch-mock';
 import { render, cleanup, waitFor, fireEvent } from '@testing-library/react';
 
-import { replaceLocation, setUrlParam } from '../../../ui/helpers/location';
+import {
+  getProjectUrl,
+  replaceLocation,
+  setUrlParam,
+} from '../../../ui/helpers/location';
 import TestFailure from '../../../ui/push-health/TestFailure';
 import pushHealth from '../mock/push_health';
+import fullJob from '../mock/full_job.json';
 
 const repoName = 'autoland';
 const crashFailure = pushHealth.metrics.tests.details.knownIssues[0];
@@ -20,6 +25,7 @@ beforeEach(() => {
     },
   });
   setUrlParam('repo', repoName);
+  fetchMock.get(getProjectUrl('/jobs/285857770/', repoName), fullJob);
   testFailure.key = 'wazzon';
 });
 
@@ -55,24 +61,16 @@ describe('TestFailure', () => {
   });
 
   test('should not show details by default', async () => {
-    const { getByText, getByTestId } = render(testTestFailure(testFailure));
-    const logLineToggle = await waitFor(() => getByTestId('log-lines'));
+    const { queryByTestId } = render(testTestFailure(testFailure));
 
-    // For collapsible components, you must check for 'collapse' (hidden) or 'collapse show' (visible)
-    // or aria-expanded attribute because collapse just hides elements, doesn't remove them.
-    expect(logLineToggle).toHaveClass('collapse');
-    expect(logLineToggle).toHaveAttribute(
-      'aria-expanded',
-      expect.stringMatching('false'),
-    );
-    expect(await waitFor(() => getByText('more...'))).toBeInTheDocument();
+    expect(queryByTestId('log-lines')).toBeNull();
   });
 
-  test('should show details when click more...', async () => {
-    const { getByText } = render(testTestFailure(testFailure));
-    const moreLink = getByText('more...');
+  test('should show details when expander clicked', async () => {
+    const { getByTestId, getByText } = render(testTestFailure(testFailure));
+    const detailsButton = getByTestId('toggleDetails-wazzon');
 
-    fireEvent.click(moreLink);
+    fireEvent.click(detailsButton);
 
     expect(
       await waitFor(() =>
@@ -82,23 +80,23 @@ describe('TestFailure', () => {
         ),
       ),
     ).toBeVisible();
-    expect(await waitFor(() => getByText('less...'))).toBeInTheDocument();
   });
 
-  test('should show crash stack and signature when click more...', async () => {
-    const { getByText, getAllByText } = render(testTestFailure(crashFailure));
-    const moreLink = getByText('more...');
+  test('should show crash stack and signature when expander clicked', async () => {
+    const { getAllByText, getByTestId } = render(testTestFailure(crashFailure));
+    const detailsButton = getByTestId(
+      'toggleDetails-t__abort_with_payload0xadebugmacosx101464testmacosx101464debugmochitestbrowserchromee10s6Mochitests',
+    );
 
-    fireEvent.click(moreLink);
+    fireEvent.click(detailsButton);
 
     expect(
       await waitFor(() => getAllByText('@ __abort_with_payload + 0xa')[0]),
     ).toBeVisible();
     expect(
       await waitFor(() =>
-        getByText('Operating system: Mac OS X', { exact: false }),
+        getAllByText('Operating system: Mac OS X', { exact: false }),
       ),
-    ).toBeVisible();
-    expect(await waitFor(() => getByText('less...'))).toBeInTheDocument();
+    ).toHaveLength(4);
   });
 });

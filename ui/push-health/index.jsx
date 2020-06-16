@@ -5,9 +5,10 @@ import { render } from 'react-dom';
 import '../css/treeherder-custom-styles.css';
 import '../css/treeherder-navbar.css';
 import '../css/treeherder-job-buttons.css';
+import '../css/failure-summary.css';
 import '../css/treeherder-notifications.css';
 import './pushhealth.css';
-
+import 'react-tabs/style/react-tabs.css';
 import App from './App';
 
 render(<App />, document.getElementById('root'));
