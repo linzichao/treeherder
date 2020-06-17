@@ -10,9 +10,9 @@ import {
 import TestFailure from '../../../ui/push-health/TestFailure';
 import pushHealth from '../mock/push_health';
 import fullJob from '../mock/full_job.json';
+import bugSuggestions from '../mock/bug_suggestions.json';
 
 const repoName = 'autoland';
-const crashFailure = pushHealth.metrics.tests.details.knownIssues[0];
 const testFailure = pushHealth.metrics.tests.details.needInvestigation[2];
 
 beforeEach(() => {
@@ -26,6 +26,19 @@ beforeEach(() => {
   });
   setUrlParam('repo', repoName);
   fetchMock.get(getProjectUrl('/jobs/285857770/', repoName), fullJob);
+  fetchMock.get(getProjectUrl('/jobs/285852303/', repoName), fullJob);
+  fetchMock.get(
+    'http://foo.com/api/queue/v1/task/fmIhWrXlQVmXCZ4aUQRYvw/runs/0/artifacts',
+    { artifacts: [{ name: 'http://baz.com/thing.log' }] },
+  );
+  fetchMock.get(
+    'http://foo.com/api/queue/v1/task/DNRiluCjQOeFdxyubn1kbA/runs/0/artifacts',
+    { artifacts: [{ name: 'http://baz.com/thing.log' }] },
+  );
+  fetchMock.get(
+    getProjectUrl('/jobs/303550431/bug_suggestions/', repoName),
+    bugSuggestions,
+  );
   testFailure.key = 'wazzon';
 });
 
@@ -42,7 +55,7 @@ describe('TestFailure', () => {
       repo="autoland"
       user={{ email: 'foo' }}
       revision="abc"
-      currentRepo={{ name: repoName }}
+      currentRepo={{ name: repoName, tc_root_url: 'http://foo.com' }}
       groupedBy="platform"
       notify={() => {}}
     />
@@ -66,7 +79,7 @@ describe('TestFailure', () => {
     expect(queryByTestId('log-lines')).toBeNull();
   });
 
-  test('should show details when expander clicked', async () => {
+  test('should show bug suggestions when expander clicked', async () => {
     const { getByTestId, getByText } = render(testTestFailure(testFailure));
     const detailsButton = getByTestId('toggleDetails-wazzon');
 
@@ -74,29 +87,21 @@ describe('TestFailure', () => {
 
     expect(
       await waitFor(() =>
-        getByText(
-          'image comparison, max difference: 15, number of differing pixels: 3200',
-          { exact: false },
-        ),
+        getByText('There must be some page title', { exact: false }),
       ),
     ).toBeVisible();
   });
 
-  test('should show crash stack and signature when expander clicked', async () => {
-    const { getAllByText, getByTestId } = render(testTestFailure(crashFailure));
-    const detailsButton = getByTestId(
-      'toggleDetails-t__abort_with_payload0xadebugmacosx101464testmacosx101464debugmochitestbrowserchromee10s6Mochitests',
-    );
+  test('should show artifacts when tab clicked', async () => {
+    const { getByTestId, getByText } = render(testTestFailure(testFailure));
+    const detailsButton = getByTestId('toggleDetails-wazzon');
 
     fireEvent.click(detailsButton);
 
-    expect(
-      await waitFor(() => getAllByText('@ __abort_with_payload + 0xa')[0]),
-    ).toBeVisible();
-    expect(
-      await waitFor(() =>
-        getAllByText('Operating system: Mac OS X', { exact: false }),
-      ),
-    ).toHaveLength(4);
+    const artifactsTab = await waitFor(() => getByText('Artifacts'));
+
+    fireEvent.click(artifactsTab);
+
+    expect(await waitFor(() => getByText('thing.log'))).toBeVisible();
   });
 });
